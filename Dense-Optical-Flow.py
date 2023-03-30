@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 #Ouverture du flux video
-cap = cv2.VideoCapture("../Vidéos/Extrait1-Cosmos_Laundromat1(340p).m4v")
+cap = cv2.VideoCapture("Videos/Extrait1-Cosmos_Laundromat1(340p).m4v")
 
 ret, frame1 = cap.read() # Passe à l'image suivante
 prvs = cv2.cvtColor(frame1,cv2.COLOR_BGR2GRAY) # Passage en niveaux de gris
