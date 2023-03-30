@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-cap = cv2.VideoCapture('../TP2_Videos/Extrait1-Cosmos_Laundromat1(340p).m4v')
+cap = cv2.VideoCapture('Videos/Extrait1-Cosmos_Laundromat1(340p).m4v')
 hist2 = None
 dists = []
 view_changed = []
