@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 cap = cv2.VideoCapture('Videos/Extrait1-Cosmos_Laundromat1(340p).m4v')
 hist2 = None
 dists = []
+dists2 = []
+dists3 = []
+dists4 = []
 view_changed = []
 paused = False
 fig, ax = plt.subplots()
@@ -23,8 +26,8 @@ while(cap.isOpened()):
         # convertir l'image en espace de couleur YUV
         yuv = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
         # extraire les composantes u et v
-        u_bins = 100 
-        v_bins = 120
+        u_bins = 30
+        v_bins = 30
         u_ranges = [0, 256]
         v_ranges = [0, 256]
         histSize = [u_bins, v_bins]
@@ -34,25 +37,37 @@ while(cap.isOpened()):
          
         hist1 = hist2
         hist2 = cv2.calcHist([yuv], channels, None, histSize, ranges, accumulate=False)
-        cv2.normalize(hist2, hist2, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
-        cv2.imshow('Histogramme 2D', hist2)
-        print(hist2)
+        
+        
+        ax.clear()
+        ax.imshow(hist2)
+        ax.set_title("Histogram")
+        plt.draw()
+        plt.pause(0.00001)
+
         cv2.imshow('Image', frame)
+        cv2.normalize(hist2, hist2, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
         # compare histograms
         if hist1 is None:
            continue
         else: 
             dist = cv2.compareHist(hist1, hist2, cv2.HISTCMP_BHATTACHARYYA)
+            dist2 = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CHISQR )
+            dist3 = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL )
+            dist4 = cv2.compareHist(hist1, hist2, cv2.HISTCMP_INTERSECT )
             dists.append(dist)
+            dists2.append(dist2)
+            dists3.append(dist3)
+            dists4.append(dist4)
             print(dist)
-            if dist > 0.45:
+            if dist > 0.5:
                 view_changed.append({"dist":dist,"frame1":frame1,"frame":frame})
 
-        ax.clear()
-        ax.plot(dists)
-        plt.draw()
-        plt.pause(0.00001)
+        # ax.clear()
+        # ax.plot(dists)
+        # plt.draw()
+        # plt.pause(0.00001)
         # plt.plot(dists)
         # plt.show()    
         # attendre une touche de clavier
@@ -73,15 +88,54 @@ while(cap.isOpened()):
             break
     else:
         break
-plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists)
+dists = np.array(dists)
+dists2 = np.array(dists2)
+dists3 = np.array(dists3)
+dists4 = np.array(dists4)
+dists = (dists-dists.min())/(dists.max()-dists.min())
+dists2 = (dists2-dists2.min())/(dists2.max()-dists2.min())
+dists3 = 1-(dists3-dists3.min())/(dists3.max()-dists3.min())
+dists4 = (dists4-dists4.min())/(dists4.max()-dists4.min())
+plt.subplot(411)
+plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists, label='Bhattacharyya ')
+plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists2, label='Chi-Square ')
+plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists3, label='Correlation ')
+#plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists4, label='Intersection ')
 plt.xlabel('Time')
 plt.ylabel('différence')
 plt.yticks(np.arange(0,1,0.1))
 plt.xticks(np.arange(0,(len(dists)+1)/fps,5))
 plt.grid(True)
+plt.legend()
 plt.title("différence entre deux images adjacentes")
+plt.subplot(412)
+plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists, label='Bhattacharyya ')
+plt.xlabel('Time')
+plt.ylabel('différence')
+plt.yticks(np.arange(0,1,0.1))
+plt.xticks(np.arange(0,(len(dists)+1)/fps,5))
+plt.grid(True)
+plt.legend()
+plt.subplot(413)
+plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists2, label='Chi-Square ')
+plt.xlabel('Time')
+plt.ylabel('différence')
+plt.yticks(np.arange(0,1,0.1))
+plt.xticks(np.arange(0,(len(dists)+1)/fps,5))
+plt.grid(True)
+plt.legend()
+plt.subplot(414)
+plt.plot(np.arange(0,len(dists)/fps, 1./fps)[:len(dists)],dists3, label='Correlation ')
+plt.xlabel('Time')
+plt.ylabel('différence')
+plt.yticks(np.arange(0,1,0.1))
+plt.xticks(np.arange(0,(len(dists)+1)/fps,5))
+plt.grid(True)
+plt.legend()
 plt.show()
-for view in view_changed[:0]:
+
+
+for view in view_changed[:]:
     paused = True
     print("dist=",view["dist"])
     cv2.imshow("frame1",view["frame1"])
