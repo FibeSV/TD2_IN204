@@ -19,6 +19,32 @@ paused = False
 x_min = x_max = 0
 y_min = y_max = 0
 
+def analyze_motion(u_mean, u_std, v_mean, v_std):
+    std_threshold = 0.5
+    mean_threshold = 1.0
+
+    if u_std < std_threshold and v_std < std_threshold:
+        return "Fixed plane"
+    elif u_std < std_threshold:
+        return "Vertical panning (Tilt)"
+    elif v_std < std_threshold:
+        return "Horizontal panning (Pan)"
+    elif abs(u_mean) > mean_threshold or abs(v_mean) > mean_threshold:
+        if u_mean > mean_threshold and v_mean > mean_threshold:
+            return "Forward travelling"
+        elif u_mean < -mean_threshold and v_mean < -mean_threshold:
+            return "Backward travelling"
+        elif u_mean > mean_threshold:
+            return "Horizontal travelling (Right)"
+        elif u_mean < -mean_threshold:
+            return "Horizontal travelling (Left)"
+        elif v_mean > mean_threshold:
+            return "Vertical travelling (Up)"
+        elif v_mean < -mean_threshold:
+            return "Vertical travelling (Down)"
+    else:
+        return "Unknown"
+
 while(ret):
     index += 1
     flow = cv2.calcOpticalFlowFarneback(prvs,next,None, 
@@ -29,12 +55,17 @@ while(ret):
                                         poly_n = 7, # Taille voisinage pour approximation polynomiale
                                         poly_sigma = 1.5, # E-T Gaussienne pour calcul dérivées 
                                         flags = 0)	
-    u_bins = 15
-    v_bins = 15
-    x_min = min(x_min, flow[:,:,0].min())
-    x_max = max(x_max, flow[:,:,0].max())
-    y_min = min(y_min, flow[:,:,1].min())
-    y_max = max(y_max, flow[:,:,1].max())
+    
+    u_mean = flow[:, :, 0].mean()
+    u_std = flow[:, :, 0].std()
+    v_mean = flow[:, :, 1].mean()
+    v_std = flow[:, :, 1].std()
+
+    motion_type = analyze_motion(u_mean, u_std, v_mean, v_std)
+    print("Motion type:", motion_type)
+
+    u_bins = 9
+    v_bins = 9
     u_ranges = [flow[:,:,0].mean()-3*flow[:,:,0].std(), flow[:,:,0].mean()+3*flow[:,:,0].std()]
     v_ranges = [flow[:,:,1].mean()-3*flow[:,:,1].std(), flow[:,:,1].mean()+3*flow[:,:,1].std()]
     histSize = [u_bins, v_bins]
@@ -44,7 +75,8 @@ while(ret):
     hist2 = cv2.calcHist([flow], channels, None, histSize, ranges, accumulate=False)
     #cv2.normalize(hist2, hist2 )
     ax.clear()
-    ax.imshow(np.log(hist2+1))
+    # ax.imshow(np.log(hist2+1))
+    ax.imshow(hist2+1)
     ax.set_title("Histogram")
     plt.draw()
     plt.pause(0.00001)
