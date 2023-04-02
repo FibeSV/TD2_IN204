@@ -29,8 +29,8 @@ while(ret):
                                         poly_n = 7, # Taille voisinage pour approximation polynomiale
                                         poly_sigma = 1.5, # E-T Gaussienne pour calcul dérivées 
                                         flags = 0)	
-    u_bins = 9
-    v_bins = 9
+    u_bins = 15
+    v_bins = 15
     x_min = min(x_min, flow[:,:,0].min())
     x_max = max(x_max, flow[:,:,0].max())
     y_min = min(y_min, flow[:,:,1].min())
