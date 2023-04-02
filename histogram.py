@@ -39,11 +39,11 @@ while(cap.isOpened()):
         hist2 = cv2.calcHist([yuv], channels, None, histSize, ranges, accumulate=False)
         
         
-        # ax.clear()
-        # ax.imshow(hist2)
-        # ax.set_title("Histogram")
-        # plt.draw()
-        # plt.pause(0.00001)
+        ax.clear()
+        ax.imshow(np.log(hist2+1))
+        ax.set_title("Histogram")
+        plt.draw()
+        plt.pause(0.00001)
 
         cv2.normalize(hist2, hist2, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
         cv2.imshow('Image', frame)
